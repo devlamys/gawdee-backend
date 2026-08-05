@@ -1,0 +1,33 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  centrifugo:
+    build:
+      context: ./src/Giriraj-Admin/src/centrifugo
+    container_name: centrifugo
+    ports:
+      - "8000:8000"
+    restart: always
+
+  backend:
+    build:
+      context: .
+    container_name: backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./config.env
+    depends_on:
+      - mongo
+      - centrifugo
+    restart: always
+
+volumes:
+  mongo_data:
