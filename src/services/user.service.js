@@ -262,22 +262,22 @@ const createCart = async (userId, items) => {
     // 4. Then fallback to product price
     const finalPrice = Number(
       incoming.price ??
-        selectedVariant?.salePrice ??
-        selectedVariant?.sellingPrice ??
-        selectedVariant?.price ??
-        product.salePrice ??
-        product.price ??
-        0
+      selectedVariant?.salePrice ??
+      selectedVariant?.sellingPrice ??
+      selectedVariant?.price ??
+      product.salePrice ??
+      product.price ??
+      0
     );
 
     const finalMrp = Number(
       incoming.mrp ??
-        selectedVariant?.mrp ??
-        selectedVariant?.regularPrice ??
-        selectedVariant?.maxPrice ??
-        product.mrp ??
-        product.maxPrice ??
-        finalPrice
+      selectedVariant?.mrp ??
+      selectedVariant?.regularPrice ??
+      selectedVariant?.maxPrice ??
+      product.mrp ??
+      product.maxPrice ??
+      finalPrice
     );
 
     const finalImage =
@@ -505,7 +505,7 @@ const updateCartItems = async (cartId, items) => {
       return (
         String(newItem.productId) === String(cartItem.productId) &&
         normalizeText(newItem.selectedColor) ===
-          normalizeText(cartItem.selectedColor)
+        normalizeText(cartItem.selectedColor)
       );
     });
 
@@ -542,10 +542,10 @@ const updateCartItems = async (cartId, items) => {
 
     const finalMrp = Number(
       selectedVariant?.mrp ??
-        newItem.mrp ??
-        product.mrp ??
-        product.maxPrice ??
-        finalPrice
+      newItem.mrp ??
+      product.mrp ??
+      product.maxPrice ??
+      finalPrice
     );
 
     const finalImage =
@@ -718,7 +718,8 @@ const getWishlist = async (userId) => {
   // .populate('products','name');
   console.log("wishlist", wishlist);
   if (!wishlist) {
-    throw new ApiError(httpStatus.BAD_REQUEST, `Wishlist not found`);
+    // throw new ApiError(httpStatus.BAD_REQUEST, `Wishlist not found`);
+    return { userId, products: [] };
   }
   return wishlist;
 };
@@ -1171,21 +1172,21 @@ const createOrderSummary = async ({
     // ✅ price = base amount without tax, example 723
     const price = Number(
       item.price ||
-        item.actualPrice ||
-        item.taxableAmount ||
-        item.basePrice ||
-        0
+      item.actualPrice ||
+      item.taxableAmount ||
+      item.basePrice ||
+      0
     );
 
     // ✅ salePrice = final product price including 5% tax, example 759
     const salePrice = Number(
       item.salePrice ||
-        item.sellingPrice ||
-        item.priceWithTax ||
-        item.itemTotal ||
-        item.saleTotal ||
-        price ||
-        0
+      item.sellingPrice ||
+      item.priceWithTax ||
+      item.itemTotal ||
+      item.saleTotal ||
+      price ||
+      0
     );
 
     const mrp = Number(
@@ -1254,16 +1255,16 @@ const createOrderSummary = async ({
     // Example: 799
     subtotal: Number(
       priceDetails.subtotal ||
-        priceDetails.originalSubtotal ||
-        priceDetails.mrpSubtotal ||
-        0
+      priceDetails.originalSubtotal ||
+      priceDetails.mrpSubtotal ||
+      0
     ),
 
     originalSubtotal: Number(
       priceDetails.originalSubtotal ||
-        priceDetails.subtotal ||
-        priceDetails.mrpSubtotal ||
-        0
+      priceDetails.subtotal ||
+      priceDetails.mrpSubtotal ||
+      0
     ),
 
     // ✅ base amount without tax
@@ -1308,8 +1309,8 @@ const createOrderSummary = async ({
 
     totalSavings: Number(
       priceDetails.totalSavings ||
-        Number(priceDetails.discount || 0) +
-          Number(priceDetails.couponDiscount || 0)
+      Number(priceDetails.discount || 0) +
+      Number(priceDetails.couponDiscount || 0)
     ),
   };
 
@@ -1326,9 +1327,9 @@ const createOrderSummary = async ({
     // ✅ bill amount / sale price including tax
     totalPrice: Number(
       totalPrice ||
-        safePriceDetails.saleSubtotal ||
-        safePriceDetails.finalAmount ||
-        0
+      safePriceDetails.saleSubtotal ||
+      safePriceDetails.finalAmount ||
+      0
     ),
 
     // ✅ included tax only
@@ -1338,9 +1339,9 @@ const createOrderSummary = async ({
     // ✅ final payable amount
     finalAmount: Number(
       finalAmount ||
-        safePriceDetails.finalAmount ||
-        safePriceDetails.saleSubtotal ||
-        0
+      safePriceDetails.finalAmount ||
+      safePriceDetails.saleSubtotal ||
+      0
     ),
 
     priceDetails: safePriceDetails,
@@ -2049,27 +2050,27 @@ const getProductBySlugService = async (slug) => {
   // ✅ Normalize attributes / variants images also
   const attributes = Array.isArray(product.attributes)
     ? product.attributes.map((attr) => {
-        const attrImages = normalizeImages(attr.images || [], "detail");
+      const attrImages = normalizeImages(attr.images || [], "detail");
 
-        return {
-          ...attr,
-          images: attrImages,
-          image: attrImages[0] || null,
-        };
-      })
+      return {
+        ...attr,
+        images: attrImages,
+        image: attrImages[0] || null,
+      };
+    })
     : [];
 
   const variants = Array.isArray(product.variants)
     ? product.variants.map((variant) => {
-        const variantImages = normalizeImages(variant.images || [], "detail");
+      const variantImages = normalizeImages(variant.images || [], "detail");
 
-        return {
-          ...variant,
-          images: variantImages,
-          image:
-            variantImages[0] || getImageUrl(variant.image, "detail") || null,
-        };
-      })
+      return {
+        ...variant,
+        images: variantImages,
+        image:
+          variantImages[0] || getImageUrl(variant.image, "detail") || null,
+      };
+    })
     : [];
 
   const displayWeight =
@@ -2119,13 +2120,13 @@ const getProductBySlugService = async (slug) => {
 
       const relatedDiscount =
         relatedOriginalPrice > 0 &&
-        relatedFinalPrice > 0 &&
-        relatedFinalPrice < relatedOriginalPrice
+          relatedFinalPrice > 0 &&
+          relatedFinalPrice < relatedOriginalPrice
           ? Math.round(
-              ((relatedOriginalPrice - relatedFinalPrice) /
-                relatedOriginalPrice) *
-                100
-            )
+            ((relatedOriginalPrice - relatedFinalPrice) /
+              relatedOriginalPrice) *
+            100
+          )
           : 0;
 
       // ✅ Related products use listing image type
@@ -2475,9 +2476,8 @@ const generateInvoiceService = async ({ orderId, userId }) => {
     invoiceUrl: invoicePdfUrl,
 
     billingDetails: {
-      name: `${order.customerDetails?.firstName || ""} ${
-        order.customerDetails?.lastName || ""
-      }`.trim(),
+      name: `${order.customerDetails?.firstName || ""} ${order.customerDetails?.lastName || ""
+        }`.trim(),
       email: order.customerDetails?.email || "",
       phone: order.customerDetails?.phone || "",
       address: order.customerDetails?.streetAddress || "",
@@ -2607,7 +2607,7 @@ const removeCartItem = async ({
       productId &&
       item.productId?.toString() === productId?.toString() &&
       String(item.selectedColor || "").toLowerCase() ===
-        String(selectedColor || "").toLowerCase();
+      String(selectedColor || "").toLowerCase();
 
     return !(sameCartItem || sameProductAndVariant);
   });
@@ -3021,12 +3021,12 @@ const icarryShipmentWebhookService = async (payload) => {
 
   const filter = awbNumber
     ? {
-        $or: [
-          { awbNumber },
-          { courierNumber: awbNumber },
-          ...(shipmentId ? [{ shipmentId }] : []),
-        ],
-      }
+      $or: [
+        { awbNumber },
+        { courierNumber: awbNumber },
+        ...(shipmentId ? [{ shipmentId }] : []),
+      ],
+    }
     : { shipmentId };
 
   const oldOrder = await OrderSummary.findOne(filter);

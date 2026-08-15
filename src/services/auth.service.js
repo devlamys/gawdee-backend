@@ -184,13 +184,16 @@ const generateOtp = () => Math.floor(10000 + Math.random() * 90000);
 const OTP_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 const sendOtp = async (mobileNumber) => {
-  if (!mobileNumber) throw new Error("Mobile number is required.");
+  const cleanMobile = String(mobileNumber || "").replace(/\D/g, "").slice(-10);
+  if (!cleanMobile || cleanMobile.length !== 10) {
+    throw new Error("Valid 10-digit mobile number is required.");
+  }
 
-  let user = await User.findOne({ mobileNumber });
+  let user = await User.findOne({ mobileNumber: cleanMobile });
 
   if (!user) {
     user = await User.create({
-      mobileNumber,
+      mobileNumber: cleanMobile,
       verified: false,
       subscribedToOffers: true,
     });
@@ -202,15 +205,30 @@ const sendOtp = async (mobileNumber) => {
   user.otp = { code: otp, expiresAt };
   await user.save();
 
-  console.log("OTP Stored for:", mobileNumber, "OTP:", otp);
+  console.log("OTP Stored for:", cleanMobile, "OTP:", otp);
 
-  await sendWhatsappOTP({ name: "User", to: mobileNumber, otp });
+  const whatsappRes = await sendWhatsappOTP({ name: "User", to: cleanMobile, otp });
+  console.log("WhatsApp response:", whatsappRes);
+
+  if (!whatsappRes.success) {
+    console.warn(`⚠️ WhatsApp gateway error (${whatsappRes.message}). Using fallback OTP delivery.`);
+    console.log(`🔑 OTP FOR ${cleanMobile}: ${otp}`);
+
+    return {
+      success: true,
+      message: "OTP generated successfully. Check WhatsApp or server console.",
+      otp,
+      userId: user._id,
+      whatsappRes,
+    };
+  }
 
   return {
     success: true,
     message: "OTP sent successfully.",
     otp,
     userId: user._id,
+    whatsappRes,
   };
 };
 
@@ -230,7 +248,7 @@ const updateAdminProfile = async (adminId, updateData) => {
   return admin;
 };
 
- const verifyOtp = async (mobileNumber, inputOtp) => {
+const verifyOtp = async (mobileNumber, inputOtp) => {
   console.log('mobileNumber', mobileNumber);
   console.log('inputOtp', inputOtp);
   if (!mobileNumber || !inputOtp) {
@@ -251,7 +269,7 @@ const updateAdminProfile = async (adminId, updateData) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "OTP has expired.");
   }
 
-  if (user.otp.code !== inputOtp) {
+  if (String(user.otp.code) !== String(inputOtp).trim()) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Invalid OTP.");
   }
 

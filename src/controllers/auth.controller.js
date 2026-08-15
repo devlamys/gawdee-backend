@@ -87,15 +87,16 @@ const getAllUsers = async (req, res, next) => {
 
 const sendOtp = async (req, res, next) => {
   try {
-    console.log('req.body', req.body)
+    console.log('req.body', req.body);
     const { mobileNumber } = req.body;
     const response = await authService.sendOtp(mobileNumber);
-    console.log('response', response)
-    res?.status(response ? 200 : 500).json(response);
-} catch (error) {
+    console.log('response', response);
+    const statusCode = response?.success ? 200 : 400;
+    res?.status(statusCode).json(response);
+  } catch (error) {
     console.error("Error in sendOtp Controller:", error.message);
     res?.status(500).json({ success: false, message: "Internal Server Error" });
-}
+  }
 };
 
 const verifyOtp = async (req, res, next) => {

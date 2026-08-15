@@ -7,10 +7,18 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
 
   centrifugo:
-    build:
-      context: ./src/Giriraj-Admin/src/centrifugo
+    image: centrifugo/centrifugo:v5
     container_name: centrifugo
     ports:
       - "8000:8000"
@@ -21,9 +29,11 @@ services:
       context: .
     container_name: backend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - ./config.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/gawdee
     depends_on:
       - mongo
       - centrifugo

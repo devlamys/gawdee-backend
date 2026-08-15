@@ -4,55 +4,54 @@ import jwt from "jsonwebtoken"
 import { User } from "../models/user.model.js";
 
 const authenticateAdmin = (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-  
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+
+  if (!token) {
+    return next(new ApiError(401, 'No token provided'));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET); 
+    req.user = decoded;
+
+    if (req.user.role !== 'admin') {
+      return next(new ApiError(403, 'You do not have permission to access this resource'));
     }
-    try {
-      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); 
-      req.user = decoded;
-  
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: 'You do not have permission to access this resource' });
-      }
-  
-      next();
-    } catch (err) {
-      // res.status(401).json({ error: 'Invalid or expired token' });
-      if (err.name === 'TokenExpiredError') {
-        return res.status(401).json({ error: 'Token has expired' });
-      } else {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
+
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return next(new ApiError(401, 'Token has expired'));
+    } else {
+      return next(new ApiError(401, 'Invalid token'));
     }
-  };
+  }
+};
 
 const authenticateUser = async (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-  
-    if (!token) {
-      return next(new ApiError(401, 'No token provided.'));
-    }
-    try {
-      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);  
-      console.log('Decoded Token:', decoded);
+  const token = req.header('Authorization')?.replace('Bearer ', '');
 
-      req.sub = decoded;  
-      const user = await User.findById(decoded.sub); 
-  
-      if (!user) {
-        return next(new ApiError(404, 'User not found.'));
-      }
+  if (!token) {
+    return next(new ApiError(401, 'No token provided.'));
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET);  
 
-      next();
-    } catch (err) {
-      if (err.name === 'TokenExpiredError') {
-        return next(new ApiError(401, 'Token has expired.'));
-      } else {
-        return next(new ApiError(401, 'Invalid token.'));
-      }
+    req.sub = decoded;  
+    const user = await User.findById(decoded.sub); 
+
+    if (!user) {
+      return next(new ApiError(404, 'User not found.'));
     }
-  };
+
+    req.user = user;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return next(new ApiError(401, 'Token has expired.'));
+    } else {
+      return next(new ApiError(401, 'Invalid token.'));
+    }
+  }
+};
   
 export default {authenticateAdmin,authenticateUser}  
