@@ -8,6 +8,8 @@ export const sendWhatsappOTP = async ({ to, otp }) => {
     const cleanTo = String(to || '').replace(/\D/g, '').slice(-10);
 
     try {
+        console.log(`📱 Sending WhatsApp OTP [${otp}] to +91${cleanTo}...`);
+
         const params = new URLSearchParams();
         params.append("apiToken", API_TOKEN);
         params.append("phone_number_id", PHONE_NUMBER_ID);
@@ -21,25 +23,27 @@ export const sendWhatsappOTP = async ({ to, otp }) => {
 
         const url = `https://chat.grafizen.com/api/v1/whatsapp/send/template?${params.toString()}`;
 
-        console.log("➡️ Sending WhatsApp OTP URL:", url);
+        console.log("➡️ WhatsApp Gateway Request URL:", url);
 
         const response = await axios.post(url, {}, {
             headers: {
+                'Authorization': `Bearer ${API_TOKEN}`,
                 'Content-Type': 'application/json',
             }
         });
 
-        console.log('WhatsApp OTP API response:', response.data);
-
         const resData = response.data || {};
 
         if (resData.status === false || resData.success === false || resData.error === true || resData.message === 'Access denied.') {
+            console.warn("⚠️ WhatsApp Gateway Warning / API Failure:", resData);
             return {
                 success: false,
                 message: resData.message || "WhatsApp gateway delivery failed",
                 data: resData,
             };
         }
+
+        console.log("✅ WhatsApp OTP Sent Successfully! Response:", resData);
 
         return {
             success: true,
@@ -50,7 +54,7 @@ export const sendWhatsappOTP = async ({ to, otp }) => {
         };
 
     } catch (error) {
-        console.error("WhatsApp OTP Send Error:", error?.response?.data || error.message);
+        console.error("❌ WhatsApp OTP Network/API Error:", error?.response?.data || error.message);
         return {
             success: false,
             message: error?.response?.data?.message || "OTP send failed",
@@ -58,4 +62,3 @@ export const sendWhatsappOTP = async ({ to, otp }) => {
         };
     }
 };
-
